@@ -1,6 +1,6 @@
 import type { GeoJSONCollection, Stats } from '../types'
 
-const API_BASE = 'http://localhost:8000/api'
+const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
 
 export async function fetchLotes(): Promise<GeoJSONCollection> {
   const res = await fetch(`${API_BASE}/lotes`)

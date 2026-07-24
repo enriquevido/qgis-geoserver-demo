@@ -1,11 +1,11 @@
 import os
 
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://docker:docker@localhost:5432/gis",
-)
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://docker:docker@localhost:5432/gis")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 

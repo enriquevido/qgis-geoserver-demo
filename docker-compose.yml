@@ -4,9 +4,9 @@ services:
     image: kartoza/postgis:16-3.4
     container_name: mini-catastro-postgis
     environment:
-      POSTGRES_DB: gis
-      POSTGRES_USER: docker
-      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: ${POSTGRES_DB:-gis}
+      POSTGRES_USER: ${POSTGRES_USER:-docker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docker}
       ALLOW_IP_RANGE: "0.0.0.0/0"
     ports:
       - "5432:5432"
@@ -14,7 +14,7 @@ services:
       - postgis-data:/var/lib/postgresql/data
       - ./postgis/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U docker -d gis"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docker} -d ${POSTGRES_DB:-gis}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,8 +26,8 @@ services:
     container_name: mini-catastro-geoserver
     environment:
       GEOSERVER_DATA_DIR: /opt/geoserver/data_dir
-      GEOSERVER_ADMIN_USER: admin
-      GEOSERVER_ADMIN_PASSWORD: geoserver
+      GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:-admin}
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:-geoserver}
       INITIAL_MEMORY: "2G"
       MAXIMUM_MEMORY: "4G"
       EXTRA_JAVA_OPTS: >-

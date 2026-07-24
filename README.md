@@ -28,18 +28,20 @@ Frontend
 ## Arranque
 
 ```bash
-# 1. Levantar PostGIS y GeoServer
+# 1. Copiar variables de entorno
+cp .env.example .env
+
+# 2. Levantar PostGIS y GeoServer
 docker compose up -d
 
-# 2. Publicar la capa en GeoServer
+# Publicar la capa en GeoServer (guía en geoserver/guia-publicacion.md)
 
-# 3. Backend
-python -m venv .venv
+# 3. Iniciar backend
 source .venv/bin/activate
 pip install -r backend/requirements.txt
 uvicorn backend.app.main:app --reload --port 8000
 
-# 4. Frontend
+# 4. Iniciar frontend
 cd frontend && npm install && npm run dev
 ```
 

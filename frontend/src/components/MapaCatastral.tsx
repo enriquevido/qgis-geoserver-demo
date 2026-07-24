@@ -5,7 +5,7 @@ import type { GeoJSONCollection, GeoJSONFeature } from '../types'
 
 const CENTRO_INICIAL: [number, number] = [19.4205, -99.1935]
 const ZOOM_INICIAL = 19
-const WMS_URL = 'http://localhost:8080/geoserver/minicatastro/wms'
+const WMS_URL = import.meta.env.VITE_WMS_URL ?? 'http://localhost:8080/geoserver/minicatastro/wms'
 
 const estiloLote: StyleFunction<Feature> = (feature) => {
   const props = feature?.properties as Record<string, unknown> | undefined
