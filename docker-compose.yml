@@ -1,0 +1,53 @@
+services:
+
+  postgis:
+    image: kartoza/postgis:16-3.4
+    container_name: mini-catastro-postgis
+    environment:
+      POSTGRES_DB: gis
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      ALLOW_IP_RANGE: "0.0.0.0/0"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgis-data:/var/lib/postgresql/data
+      - ./postgis/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker -d gis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mini-catastro-net
+
+  geoserver:
+    image: kartoza/geoserver:2.24.4
+    container_name: mini-catastro-geoserver
+    environment:
+      GEOSERVER_DATA_DIR: /opt/geoserver/data_dir
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: geoserver
+      INITIAL_MEMORY: "2G"
+      MAXIMUM_MEMORY: "4G"
+      EXTRA_JAVA_OPTS: >-
+        -Dorg.geotools.referencing.forceXY=true
+        -DALLOW_ENV_PARAMETERIZATION=true
+    ports:
+      - "8080:8080"
+    volumes:
+      - geoserver-data:/opt/geoserver/data_dir
+      - ./geoserver/sld:/sld
+    depends_on:
+      postgis:
+        condition: service_healthy
+    networks:
+      - mini-catastro-net
+
+volumes:
+  postgis-data:
+  geoserver-data:
+
+networks:
+  mini-catastro-net:
+    driver: bridge
