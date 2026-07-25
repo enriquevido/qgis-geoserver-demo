@@ -1,9 +1,7 @@
 import json
-import os
 from datetime import date
 from typing import Any
 
-import httpx
 from geoalchemy2.functions import ST_AsGeoJSON
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,59 +14,104 @@ from app.schemas import MensajeError, StatsOut
 
 router = APIRouter()
 
-GEOSERVER_URL = os.getenv("GEOSERVER_URL", "http://localhost:8080/geoserver")
-WFS_URL = f"{GEOSERVER_URL}/demo/ows"
-
-
-async def _fetch_wfs(cql_filter: str | None = None) -> dict[str, Any]:
-    params: dict[str, str] = {
-        "service": "WFS",
-        "version": "2.0.0",
-        "request": "GetFeature",
-        "typeNames": "demo:lotes",
-        "outputFormat": "application/json",
-        "srsName": "EPSG:4326",
-    }
-    if cql_filter:
-        params["cql_filter"] = cql_filter
-
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        try:
-            resp = await client.get(WFS_URL, params=params)
-            resp.raise_for_status()
-        except httpx.RequestError as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=f"No se pudo conectar con GeoServer: {exc}",
-            )
-        except httpx.HTTPStatusError as exc:
-            raise HTTPException(
-                status_code=exc.response.status_code,
-                detail=f"GeoServer respondió con error: {exc.response.text[:300]}",
-            )
-        return resp.json()
-
 
 @router.get(
     "/lotes",
     summary="Todos los lotes",
-    description="Consume el WFS de GeoServer y devuelve todos los lotes como GeoJSON.",
+    description="Consume PostGIS directamente y devuelve todos los lotes como GeoJSON.",
 )
-async def obtener_lotes() -> dict[str, Any]:
-    return await _fetch_wfs()
+async def obtener_lotes(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    result = await db.execute(
+        select(
+            Lote.id,
+            Lote.nombre,
+            Lote.estado,
+            Lote.fecha_registro,
+            ST_AsGeoJSON(Lote.geom),
+        )
+    )
+    rows = result.all()
+    features = []
+    for row in rows:
+        features.append({
+            "type": "Feature",
+            "geometry": json.loads(row[4]),
+            "properties": {
+                "id": row[0],
+                "nombre": row[1],
+                "estado": row[2],
+                "fecha_registro": (
+                    row[3].isoformat() if isinstance(row[3], date) else row[3]
+                ),
+            },
+        })
+    return {"type": "FeatureCollection", "features": features}
 
 
 @router.get(
     "/lotes/disponibles",
     summary="Lotes disponibles",
-    description=(
-        "Consume el WFS de GeoServer con un filtro CQL (estado='disponible'). "
-        "La lógica de negocio (qué significa 'disponible') se aplica en esta "
-        "capa, no en GeoServer ni en el frontend."
-    ),
+    description="Lotes filtrados por estado='disponible' desde PostGIS.",
 )
-async def obtener_lotes_disponibles() -> dict[str, Any]:
-    return await _fetch_wfs(cql_filter="estado='disponible'")
+async def obtener_lotes_disponibles(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    result = await db.execute(
+        select(
+            Lote.id,
+            Lote.nombre,
+            Lote.estado,
+            Lote.fecha_registro,
+            ST_AsGeoJSON(Lote.geom),
+        ).where(Lote.estado == "disponible")
+    )
+    rows = result.all()
+    features = []
+    for row in rows:
+        features.append({
+            "type": "Feature",
+            "geometry": json.loads(row[4]),
+            "properties": {
+                "id": row[0],
+                "nombre": row[1],
+                "estado": row[2],
+                "fecha_registro": (
+                    row[3].isoformat() if isinstance(row[3], date) else row[3]
+                ),
+            },
+        })
+    return {"type": "FeatureCollection", "features": features}
+
+
+@router.get(
+    "/lotes/ocupados",
+    summary="Lotes ocupados",
+    description="Lotes filtrados por estado='ocupado' desde PostGIS.",
+)
+async def obtener_lotes_ocupados(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    result = await db.execute(
+        select(
+            Lote.id,
+            Lote.nombre,
+            Lote.estado,
+            Lote.fecha_registro,
+            ST_AsGeoJSON(Lote.geom),
+        ).where(Lote.estado == "ocupado")
+    )
+    rows = result.all()
+    features = []
+    for row in rows:
+        features.append({
+            "type": "Feature",
+            "geometry": json.loads(row[4]),
+            "properties": {
+                "id": row[0],
+                "nombre": row[1],
+                "estado": row[2],
+                "fecha_registro": (
+                    row[3].isoformat() if isinstance(row[3], date) else row[3]
+                ),
+            },
+        })
+    return {"type": "FeatureCollection", "features": features}
 
 
 @router.get(

@@ -1,19 +1,21 @@
 import { MapContainer, TileLayer, GeoJSON, WMSTileLayer } from 'react-leaflet'
 import type { Feature } from 'geojson'
-import type { PathOptions, StyleFunction } from 'leaflet'
+import type { PathOptions } from 'leaflet'
 import type { GeoJSONCollection, GeoJSONFeature } from '../types'
 
 const CENTRO_INICIAL: [number, number] = [19.4205, -99.1935]
-const ZOOM_INICIAL = 19
+const ZOOM_INICIAL = 16
 const WMS_URL = import.meta.env.VITE_WMS_URL ?? 'http://localhost:8080/geoserver/demo/wms'
 
-const estiloLote: StyleFunction<Feature> = (feature) => {
+const estiloLote = (feature?: Feature): PathOptions => {
   const props = feature?.properties as Record<string, unknown> | undefined
   const ocupado = props?.estado === 'ocupado'
   return {
     color: ocupado ? '#e74c3c' : '#27ae60',
     weight: 3,
-    fill: false,
+    fill: true,
+    fillColor: '#ffffff',
+    fillOpacity: 0.01,
   }
 }
 
@@ -41,12 +43,16 @@ export default function MapaCatastral({ datos, cargando }: Props) {
       <MapContainer
         center={CENTRO_INICIAL}
         zoom={ZOOM_INICIAL}
+        maxZoom={20}
+        minZoom={14}
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxNativeZoom={19}
+          maxZoom={20}
         />
 
         <WMSTileLayer
@@ -55,6 +61,7 @@ export default function MapaCatastral({ datos, cargando }: Props) {
           format="image/png"
           transparent={true}
           opacity={0.7}
+          maxZoom={20}
         />
 
         {datos && (
@@ -76,8 +83,8 @@ export default function MapaCatastral({ datos, cargando }: Props) {
                 Registro: ${fecha}
               `)
               layer.on({
-                mouseover: (e) => e.target.setStyle({ weight: 5, color: '#2c3e50' }),
-                mouseout: (e) => e.target.setStyle(estiloLote(feature) as PathOptions),
+                mouseover: (e) => e.target.setStyle({ weight: 5, color: '#2c3e50', fillOpacity: 0.15 }),
+                mouseout: (e) => e.target.setStyle(estiloLote(feature)),
               })
             }}
           />

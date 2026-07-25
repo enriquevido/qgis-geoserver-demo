@@ -23,7 +23,7 @@ export interface Stats {
   disponibles: number
 }
 
-export type FiltroEstado = 'todos' | 'disponibles'
+export type FiltroEstado = 'todos' | 'disponibles' | 'ocupados'
 
 export type EstadoCarga<T> =
   | { status: 'loading' }

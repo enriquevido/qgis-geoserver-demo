@@ -37,6 +37,13 @@ export default function PanelFiltros({ filtro, onChangeFiltro, stats }: Props) {
         Disponibles {stats !== null ? `(${stats.disponibles})` : ''}
       </button>
 
+      <button
+        style={estiloBoton(filtro === 'ocupados')}
+        onClick={() => onChangeFiltro('ocupados')}
+      >
+        Ocupados {stats !== null ? `(${stats.ocupados})` : ''}
+      </button>
+
       {stats !== null && (
         <span style={{ marginLeft: 'auto', color: '#7f8c8d', fontSize: 13 }}>
           Ocupados: {stats.ocupados} &middot; Disponibles: {stats.disponibles}

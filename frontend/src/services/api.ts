@@ -14,6 +14,12 @@ export async function fetchLotesDisponibles(): Promise<GeoJSONCollection> {
   return res.json()
 }
 
+export async function fetchLotesOcupados(): Promise<GeoJSONCollection> {
+  const res = await fetch(`${API_BASE}/lotes/ocupados`)
+  if (!res.ok) throw new Error(`Error al obtener lotes ocupados: ${res.statusText}`)
+  return res.json()
+}
+
 export async function fetchStats(): Promise<Stats> {
   const res = await fetch(`${API_BASE}/lotes/stats`)
   if (!res.ok) throw new Error(`Error al obtener estadísticas: ${res.statusText}`)
