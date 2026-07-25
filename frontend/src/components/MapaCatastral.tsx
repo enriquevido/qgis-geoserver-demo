@@ -8,7 +8,7 @@ const ZOOM_INICIAL = 16
 const WMS_URL = import.meta.env.VITE_WMS_URL ?? 'http://localhost:8080/geoserver/demo/wms'
 
 const estiloLote = (feature?: Feature): PathOptions => {
-  const props = feature?.properties as Record<string, unknown> | undefined
+  const props = feature?.properties
   const ocupado = props?.estado === 'ocupado'
   return {
     color: ocupado ? '#e74c3c' : '#27ae60',
@@ -17,10 +17,6 @@ const estiloLote = (feature?: Feature): PathOptions => {
     fillColor: '#ffffff',
     fillOpacity: 0.01,
   }
-}
-
-function convertirAFeature(f: Feature): GeoJSONFeature {
-  return f as unknown as GeoJSONFeature
 }
 
 interface Props {
@@ -70,7 +66,7 @@ export default function MapaCatastral({ datos, cargando }: Props) {
             data={datos}
             style={estiloLote}
             onEachFeature={(feature, layer) => {
-              const f = convertirAFeature(feature)
+              const f = feature as unknown as GeoJSONFeature
               const props = f.properties
               const fecha = props.fecha_registro
                 ? new Date(props.fecha_registro).toLocaleDateString('es-MX')

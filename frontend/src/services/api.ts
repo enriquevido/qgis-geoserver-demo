@@ -2,21 +2,10 @@ import type { GeoJSONCollection, Stats } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
 
-export async function fetchLotes(): Promise<GeoJSONCollection> {
-  const res = await fetch(`${API_BASE}/lotes`)
+export async function fetchLotes(estado?: 'disponibles' | 'ocupados'): Promise<GeoJSONCollection> {
+  const params = estado ? `?estado=${estado.slice(0, -1)}` : ''
+  const res = await fetch(`${API_BASE}/lotes${params}`)
   if (!res.ok) throw new Error(`Error al obtener lotes: ${res.statusText}`)
-  return res.json()
-}
-
-export async function fetchLotesDisponibles(): Promise<GeoJSONCollection> {
-  const res = await fetch(`${API_BASE}/lotes/disponibles`)
-  if (!res.ok) throw new Error(`Error al obtener lotes disponibles: ${res.statusText}`)
-  return res.json()
-}
-
-export async function fetchLotesOcupados(): Promise<GeoJSONCollection> {
-  const res = await fetch(`${API_BASE}/lotes/ocupados`)
-  if (!res.ok) throw new Error(`Error al obtener lotes ocupados: ${res.statusText}`)
   return res.json()
 }
 

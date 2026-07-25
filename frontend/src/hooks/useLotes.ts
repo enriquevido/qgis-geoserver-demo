@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchLotes, fetchLotesDisponibles, fetchLotesOcupados } from '../services/api'
+import { fetchLotes } from '../services/api'
 import type { EstadoCarga, FiltroEstado, GeoJSONCollection } from '../types'
 
 export function useLotes(filtro: FiltroEstado) {
@@ -8,10 +8,7 @@ export function useLotes(filtro: FiltroEstado) {
   const cargar = useCallback(async () => {
     setEstado({ status: 'loading' })
     try {
-      const data =
-        filtro === 'disponibles' ? await fetchLotesDisponibles() :
-        filtro === 'ocupados' ? await fetchLotesOcupados() :
-        await fetchLotes()
+      const data = await fetchLotes(filtro === 'todos' ? undefined : filtro)
       setEstado({ status: 'success', data })
     } catch (err) {
       setEstado({
