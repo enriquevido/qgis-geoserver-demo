@@ -17,7 +17,7 @@ from app.schemas import MensajeError, StatsOut
 router = APIRouter()
 
 GEOSERVER_URL = os.getenv("GEOSERVER_URL", "http://localhost:8080/geoserver")
-WFS_URL = f"{GEOSERVER_URL}/minicatastro/ows"
+WFS_URL = f"{GEOSERVER_URL}/demo/ows"
 
 
 async def _fetch_wfs(cql_filter: str | None = None) -> dict[str, Any]:
@@ -25,7 +25,7 @@ async def _fetch_wfs(cql_filter: str | None = None) -> dict[str, Any]:
         "service": "WFS",
         "version": "2.0.0",
         "request": "GetFeature",
-        "typeNames": "minicatastro:lotes",
+        "typeNames": "demo:lotes",
         "outputFormat": "application/json",
         "srsName": "EPSG:4326",
     }
