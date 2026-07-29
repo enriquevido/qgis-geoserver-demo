@@ -3,8 +3,8 @@ import type { Feature } from 'geojson'
 import type { PathOptions } from 'leaflet'
 import type { GeoJSONCollection, GeoJSONFeature } from '../types'
 
-const CENTRO_INICIAL: [number, number] = [19.4205, -99.1935]
-const ZOOM_INICIAL = 16
+const INITIAL_CENTER: [number, number] = [19.4205, -99.1935]
+const INITIAL_ZOOM = 19
 const WMS_URL = import.meta.env.VITE_WMS_URL ?? 'http://localhost:8080/geoserver/demo/wms'
 
 const estiloLote = (feature?: Feature): PathOptions => {
@@ -37,8 +37,8 @@ export default function MapaCatastral({ datos, cargando }: Props) {
         </div>
       )}
       <MapContainer
-        center={CENTRO_INICIAL}
-        zoom={ZOOM_INICIAL}
+        center={INITIAL_CENTER}
+        zoom={INITIAL_ZOOM}
         maxZoom={20}
         minZoom={14}
         scrollWheelZoom={true}
