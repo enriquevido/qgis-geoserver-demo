@@ -38,8 +38,8 @@ docker compose up -d
 
 # 3. Iniciar backend
 source .venv/bin/activate
-pip install -r backend/requirements.txt
-uvicorn backend.app.main:app --reload --port 8000
+cd backend
+uvicorn app.main:app --reload --port 8000
 
 # 4. Iniciar frontend
 cd frontend && npm install && npm run dev
