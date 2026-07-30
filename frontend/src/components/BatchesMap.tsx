@@ -7,27 +7,27 @@ const INITIAL_CENTER: [number, number] = [19.4205, -99.1935]
 const INITIAL_ZOOM = 19
 const WMS_URL = import.meta.env.VITE_WMS_URL ?? 'http://localhost:8080/geoserver/demo/wms'
 
-const estiloLote = (feature?: Feature): PathOptions => {
+const batchStyle = (feature?: Feature): PathOptions => {
   const props = feature?.properties
-  const ocupado = props?.estado === 'ocupado'
+  const busy = props?.state === 'busy'
   return {
-    color: ocupado ? '#e74c3c' : '#27ae60',
+    color: busy ? '#e74c3c' : '#27ae60',
     weight: 3,
     fill: true,
-    fillColor: '#ffffff',
+    fillColor: '#898686',
     fillOpacity: 0.01,
   }
 }
 
 interface Props {
-  datos: GeoJSONCollection | null
-  cargando: boolean
+  data: GeoJSONCollection | null
+  charging: boolean
 }
 
-export default function MapaCatastral({ datos, cargando }: Props) {
+export default function batchMap({ data, charging }: Props) {
   return (
     <div style={{ position: 'relative', height: '600px', width: '100%' }}>
-      {cargando && (
+      {charging && (
         <div style={{
           position: 'absolute', top: 10, left: 10, zIndex: 1000,
           background: 'rgba(255,255,255,0.9)', padding: '8px 16px',
@@ -60,27 +60,27 @@ export default function MapaCatastral({ datos, cargando }: Props) {
           maxZoom={20}
         />
 
-        {datos && (
+        {data && (
           <GeoJSON
-            key={JSON.stringify(datos)}
-            data={datos}
-            style={estiloLote}
+            key={JSON.stringify(data)}
+            data={data}
+            style={batchStyle}
             onEachFeature={(feature, layer) => {
               const f = feature as unknown as GeoJSONFeature
               const props = f.properties
-              const fecha = props.fecha_registro
-                ? new Date(props.fecha_registro).toLocaleDateString('es-MX')
+              const date = props.register_date
+                ? new Date(props.register_date).toLocaleDateString('es-MX')
                 : '—'
               layer.bindPopup(`
-                <strong>${props.nombre}</strong><br/>
-                Estado: <span style="color:${props.estado === 'ocupado' ? '#e74c3c' : '#27ae60'}">
-                  ${props.estado === 'ocupado' ? 'Ocupado' : 'Disponible'}
+                <strong>${props.name}</strong><br/>
+                Estado: <span style="color:${props.state === 'busy' ? '#e74c3c' : '#27ae60'}">
+                  ${props.state === 'busy' ? 'Ocupado' : 'Disponible'}
                 </span><br/>
-                Registro: ${fecha}
+                Registro: ${date}
               `)
               layer.on({
                 mouseover: (e) => e.target.setStyle({ weight: 5, color: '#2c3e50', fillOpacity: 0.15 }),
-                mouseout: (e) => e.target.setStyle(estiloLote(feature)),
+                mouseout: (e) => e.target.setStyle(batchStyle(feature)),
               })
             }}
           />

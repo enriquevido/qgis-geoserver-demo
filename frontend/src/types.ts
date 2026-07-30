@@ -1,8 +1,8 @@
 export interface LoteProperties {
   id: number
-  nombre: string
-  estado: 'ocupado' | 'disponible'
-  fecha_registro: string | null
+  name: string
+  state: 'busy' | 'available'
+  register_date: string | null
   [key: string]: unknown
 }
 
@@ -19,13 +19,13 @@ export interface GeoJSONCollection {
 
 export interface Stats {
   total: number
-  ocupados: number
-  disponibles: number
+  busy: number
+  available: number
 }
 
-export type FiltroEstado = 'todos' | 'disponibles' | 'ocupados'
+export type stateFilter = 'all' | 'available' | 'busy'
 
-export type EstadoCarga<T> =
+export type stateCharging<T> =
   | { status: 'loading' }
-  | { status: 'error'; mensaje: string }
+  | { status: 'error'; message: string }
   | { status: 'success'; data: T }

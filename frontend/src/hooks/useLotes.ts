@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchLotes } from '../services/api'
-import type { EstadoCarga, FiltroEstado, GeoJSONCollection } from '../types'
+import { fetchBatches } from '../services/api'
+import type { stateCharging, stateFilter, GeoJSONCollection } from '../types'
 
-export function useLotes(filtro: FiltroEstado) {
-  const [estado, setEstado] = useState<EstadoCarga<GeoJSONCollection>>({ status: 'loading' })
+export function useLotes(filter: stateFilter) {
+  const [state, setState] = useState<stateCharging<GeoJSONCollection>>({ status: 'loading' })
 
-  const cargar = useCallback(async () => {
-    setEstado({ status: 'loading' })
+  const charge = useCallback(async () => {
+    setState({ status: 'loading' })
     try {
-      const data = await fetchLotes(filtro === 'todos' ? undefined : filtro)
-      setEstado({ status: 'success', data })
+      const data = await fetchBatches(filter === 'all' ? undefined : filter)
+      setState({ status: 'success', data })
     } catch (err) {
-      setEstado({
+      setState({
         status: 'error',
-        mensaje: err instanceof Error ? err.message : 'Error desconocido',
+        message: err instanceof Error ? err.message : 'Unknown error',
       })
     }
-  }, [filtro])
+  }, [filter])
 
-  useEffect(() => { cargar() }, [cargar])
+  useEffect(() => { charge() }, [charge])
 
-  return { estado, recargar: cargar }
+  return { state, recharge: charge }
 }

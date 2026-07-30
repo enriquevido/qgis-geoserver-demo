@@ -21,9 +21,9 @@ def _row_to_feature(row) -> dict[str, Any]:
         "geometry": json.loads(row[4]),
         "properties": {
             "id": row[0],
-            "nombre": row[1],
-            "estado": row[2],
-            "fecha_registro": (
+            "name": row[1],
+            "state": "available" if row[2] == "disponible" else "busy",
+            "register_date": (
                 row[3].isoformat() if isinstance(row[3], date) else row[3]
             ),
         },
@@ -31,57 +31,58 @@ def _row_to_feature(row) -> dict[str, Any]:
 
 
 @router.get(
-    "/lotes",
-    summary="Listar lotes",
-    description="Devuelve todos los lotes como GeoJSON, opcionalmente filtrados por estado.",
+    "/batches",
+    summary="List batches",
+    description="Returns all batches as GeoJSON, optionally filtered by state.",
 )
 async def obtener_lotes(
-    estado: str | None = Query(None, description="Filtrar por estado (disponible, ocupado)"),
+    state: str | None = Query(None, description="Filter by state (available, busy)"),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     stmt = select(
         Lote.id, Lote.nombre, Lote.estado,
         Lote.fecha_registro, ST_AsGeoJSON(Lote.geom),
     )
-    if estado:
-        stmt = stmt.where(Lote.estado == estado)
+    if state:
+        db_state = "disponible" if state == "available" else "ocupado"
+        stmt = stmt.where(Lote.estado == db_state)
     result = await db.execute(stmt)
     return {"type": "FeatureCollection", "features": [_row_to_feature(r) for r in result.all()]}
 
 
 @router.get(
-    "/lotes/stats",
-    summary="Estadísticas de lotes",
+    "/batches/stats",
+    summary="Batch statistics",
     response_model=StatsOut,
 )
 async def obtener_stats(db: AsyncSession = Depends(get_db)) -> StatsOut:
     result = await db.execute(
         select(
             func.count().label("total"),
-            func.count().filter(Lote.estado == "ocupado").label("ocupados"),
-            func.count().filter(Lote.estado == "disponible").label("disponibles"),
+            func.count().filter(Lote.estado == "ocupado").label("busy"),
+            func.count().filter(Lote.estado == "disponible").label("available"),
         )
     )
     row = result.one()
-    return StatsOut(total=row.total, ocupados=row.ocupados, disponibles=row.disponibles)
+    return StatsOut(total=row.total, busy=row.busy, available=row.available)
 
 
 @router.get(
-    "/lotes/{lote_id}",
-    summary="Detalle de un lote",
-    responses={404: {"description": "Lote no encontrado"}},
+    "/batches/{batch_id}",
+    summary="Batch detail",
+    responses={404: {"description": "Batch not found"}},
 )
 async def obtener_lote(
-    lote_id: int,
+    batch_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     result = await db.execute(
         select(
             Lote.id, Lote.nombre, Lote.estado,
             Lote.fecha_registro, ST_AsGeoJSON(Lote.geom),
-        ).where(Lote.id == lote_id)
+        ).where(Lote.id == batch_id)
     )
     row = result.one_or_none()
     if row is None:
-        raise HTTPException(status_code=404, detail="Lote no encontrado")
+        raise HTTPException(status_code=404, detail="Batch not found")
     return _row_to_feature(row)
